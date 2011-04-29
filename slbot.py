@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from colors import *
-from ParseConfig import *
+from tasbot.ParseConfig import *
 import string
-from utilities import *
+from tasbot.utilities import *
 from time import *
 from os import system
 from s44db import S44DB
@@ -14,9 +13,13 @@ default_update_notice = """Please update your SpringLobby.\n
 http://springlobby.info/wiki/springlobby/Install has all the info you\'ll need. If you have any questions, please ask in #springlobby"""
 bot_msg = "This is an automated message, do not reply."
 
-class Main:
-	chans = []
-	admins = []
+from tasbot.Plugin import IPlugin
+
+class Main(IPlugin):
+        def __init__(self,name,tasclient):
+                IPlugin.__init__(self,name,tasclient)
+		self.chans = []
+		self.admins = []
 
 	def AddTascUser(self, user, msg ):
 		#'[EPIC]Alex2be4life is using TASClient 0.57 rev 754 on XP. Scripts=True News=False'
