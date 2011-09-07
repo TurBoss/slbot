@@ -1,1 +1,1 @@
-../tasbot/tasbot/plugins/join_channels.py
+tasbot/plugins/join_channels.py
