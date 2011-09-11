@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
-from tasbot.ParseConfig import *
+
 import string
-from tasbot.utilities import *
 from time import *
 from os import system
-from s44db import S44DB
 import sys, os
 from svg.charts.plot import Plot
+
+from tasbot.utilities import *
+from tasbot.plugin import IPlugin
+
+from s44db import S44DB
 from notices import Notices
 
 default_update_notice = """Please update your SpringLobby.\n
 http://springlobby.info/wiki/springlobby/Install has all the info you\'ll need. If you have any questions, please ask in #springlobby"""
 bot_msg = "This is an automated message, do not reply."
 
-from tasbot.Plugin import IPlugin
+
 
 class Main(IPlugin):
         def __init__(self,name,tasclient):
@@ -120,7 +123,7 @@ class Main(IPlugin):
 					user.rank = getrank( status ) -1
 					self.db.SetUser( user )
 
-				except:
+				except Exception:
 					print 'clientstatus update failed for %s'%(args[0])
 				
 
@@ -130,17 +133,15 @@ class Main(IPlugin):
 
 	def onload(self,tasc):
 		self.app = tasc.main
-		self.chans = parselist(self.app.config["channels"],',')
-		self.admins = parselist(self.app.config["admins"],',')
-		self.update_notice = parselist(self.app.config["update_notice"],',')[0]
-		self.stats_channel = parselist(self.app.config["stats_channel"],',')[0]
-		self.min_revision = int( parselist(self.app.config["min_revision"],',')[0] )
+		self.chans = self.app.config.get_optionlist('join_channels',"channels")
+		self.admins = self.app.config.get_optionlist('tasbot', "admins")
+		self.update_notice = self.app.config.get_optionlist('gamebot', "update_notice")
+		self.stats_channel = self.app.config.get_optionlist('gamebot', "stats_channel")
+		self.min_revision = self.app.config.get_optionlist('gamebot', "min_revision") 
 		system('touch users.txt users_s44.txt' )
-		self.db = S44DB(parselist(self.app.config["dbuser"],',')[0] ,
-                      parselist(self.app.config["dbpw"],',')[0],
-                      parselist(self.app.config["dbname"],',')[0] )
+		self.db = S44DB(self.app.config.get("gamebot",'alchemy_uri'))
 		if not self.db:
-			raise exit( 0 )
+			raise SystemExit(1)
 		self.notices = Notices( self.db )
 
 	def ChartTest(self):

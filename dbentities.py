@@ -28,7 +28,6 @@ class User(Base):
 
 
 	def __init__(self, nick, country, cpu):
-		self.id = id
 		self.nick = nick
 		self.country = country
 		self.cpu = cpu

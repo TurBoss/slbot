@@ -28,11 +28,11 @@ class S44DB(object):
 	'''
 	classdocs
 	'''
-	def __init__(self,dbuser,dbpw,dbname):
+	def __init__(self,alchemy_uri):
 		'''
 		Constructor
 		'''
-		self.engine = create_engine('mysql://%s:%s@localhost/%s'%(dbuser,dbpw,dbname), echo=False)
+		self.engine = create_engine(alchemy_uri, echo=False)
 		
 		self.metadata = Base.metadata
 		self.metadata.bind = self.engine
