@@ -14,8 +14,9 @@ def myclamp( val, min, max ):
 
 class Charts:
 
-	def __init__(self,db,svgdir):
-		self.db = db
+	def __init__(self,slbot,svgdir):
+		self.slbot = slbot
+		self.db = slbot.db
 		self.svgdir = svgdir
 		self.dateformat = '%Y-%m-%d'
 
@@ -185,7 +186,7 @@ class Charts:
 		inc = timedelta(days=30)
 		periods.append ( [lastyear, inc, 'Last year'] )
 		self.NewUsers(periods)
-		self.NewGameUsers(periods,'s44')
+		self.NewGameUsers(periods,self.slbot.app.config.get('gamebot', 'mod'))
 		self.LobbyRevs(periods)
 		self.CurrentSLrevs(20)
 		

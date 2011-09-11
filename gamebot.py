@@ -1,32 +1,35 @@
 # -*- coding: utf-8 -*-
-from colors import *
-from ParseConfig import *
 import string
-from utilities import *
 from time import *
 from os import system
-from s44db import S44DB
-import sys, os
+import sys
+import os
 from svg.charts.plot import Plot
-from notices import Notices
 
-class Main:
-	chans = []
-	admins = []
+from tasbot.plugin import IPlugin
+from tasbot.customlog import Log
+
+from backend import Backend
+from notices import Notices
+import charts
+
+class Main(IPlugin):
+	def __init__(self,name,tasclient):
+		IPlugin.__init__(self,name,tasclient)
+		self.chans = []
+		self.admins = []
 
 	def onload(self,tasc):
 		self.app = tasc.main
-		self.modchannels = parselist(self.app.config["modchannels"],',')
-		self.channels = parselist(self.app.config["channels"],',')
-		self.modname = parselist(self.app.config["mod"],',')[0]
-		self.modtag = parselist(self.app.config["modtag"],',')[0]
-		self.admins = parselist(self.app.config["modadmins"],',')
-		self.admins.append( parselist(self.app.config["admins"],',') )
-		self.db = S44DB(parselist(self.app.config["dbuser"],',')[0] ,
-                      parselist(self.app.config["dbpw"],',')[0],
-                      parselist(self.app.config["dbname"],',')[0] )
+		self.modchannels = self.app.config.get_optionlist('gamebot', "modchannels")
+		self.channels = self.app.config.get_optionlist('join_channels', "channels")
+		self.modname = self.app.config.get('gamebot', "mod")
+		self.modtag = self.app.config.get('gamebot', "modtag")
+		self.admins = self.app.config.get_optionlist('gamebot', "modadmins")
+		self.admins.append( self.app.config.get_optionlist('tasbot', "admins"))
+		self.db = Backend(self.app.config.get('gamebot', "alchemy_uri"))
 		if not self.db:
-			raise exit( 0 )
+			raise SystemExit(1)
 
 	def SendUsers(self, nick, socket ):
 		users = self.db.GetGameUsers( self.modname )
@@ -55,13 +58,13 @@ class Main:
 				self.db.SetPrimaryGame( nick, self.modname )
 				try:
 					user = self.db.GetUser( nick )
-					print '%s -- %d -- %d'%(nick, user.welcome_sent,user.rank )
+					#Log.info('%s -- %d -- %d'%(nick, user.welcome_sent,user.rank ))
 					if not user.welcome_sent and user.rank < 1:
-						socket.send('say %s hello first time visitor %s\n'%(chan,nick) )
-						user.welcome_sent = True
+						#socket.send('say %s hello first time visitor %s\n'%(chan,nick) )
+						#user.welcome_sent = True
 						self.db.SetUser( user )
 				except Exception, e:
-					print(e)
+					Log.exception(e)
 
 			elif chan in self.channels:
 				self.db.SetPrimaryGame( nick, 'multiple' )
@@ -73,6 +76,6 @@ class Main:
 				if command == "users":
 					self.SendUsers( args[0], socket )
 				if command == 'chart':
-					self.ChartTest()
+					charts.Charts(self, self.app.config.get('gamebot', 'output_dir')).All()
 					socket.send('sayprivate %s done \n'%(args[0]))
 				

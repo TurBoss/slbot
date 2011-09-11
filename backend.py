@@ -24,7 +24,7 @@ class ElementNotFoundException( Exception ):
 	def __str__(self):
 		return "Element %s not found in db"%(self.element)
 
-class S44DB(object):
+class Backend(object):
 	'''
 	classdocs
 	'''

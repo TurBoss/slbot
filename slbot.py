@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
-
 import string
 from time import *
 from os import system
 import sys, os
 from svg.charts.plot import Plot
+from datetime import datetime,timedelta
 
 from tasbot.utilities import *
 from tasbot.plugin import IPlugin
 
-from s44db import S44DB
+from backend import Backend
 from notices import Notices
+import charts
 
 default_update_notice = """Please update your SpringLobby.\n
 http://springlobby.info/wiki/springlobby/Install has all the info you\'ll need. If you have any questions, please ask in #springlobby"""
 bot_msg = "This is an automated message, do not reply."
 
 
-
 class Main(IPlugin):
-        def __init__(self,name,tasclient):
-                IPlugin.__init__(self,name,tasclient)
+	def __init__(self,name,tasclient):
+		IPlugin.__init__(self,name,tasclient)
 		self.chans = []
 		self.admins = []
 
@@ -65,7 +65,6 @@ class Main(IPlugin):
 		total = stats['all']
 		for key,num in stats.items():
 			socket.send('sayprivate %s %8f\t %s sessions \t(%5f)\n'%(nick, num, key, ( num / float(total) ) * 100 ) )
-		from datetime import datetime,timedelta
 		since = datetime.now() - timedelta(7)
 		socket.send('sayprivate %s %d updates since %s\n'%(nick,self.db.GetUpdates( since ), str(since) ) )
 		stats = self.db.GetOSstats(lobby)
@@ -79,14 +78,15 @@ class Main(IPlugin):
 				if command == "metricsave":
 					self.ondestroy()
 				if command == "metric":
-					if len( args ) > 2:
-						self.SendLobbyMetric( args[0], socket )
-					else:
-						self.SendMetric( args[0], socket )
+					self.SendLobbyMetric( args[0], socket )
+					#if len( args ) > 2:
+						#self.SendLobbyMetric( args[0], socket )
+					#else:
+						#self.SendMetric( args[0], socket )
 				if command == "users":
 					self.SendUsers( args[0], socket )
-				if command == 'chart':
-					self.ChartTest()
+				if command == 'charttest':
+					charts.Charts(self, self.app.config.get('gamebot', 'output_dir')).All()
 					socket.send('sayprivate %s done \n'%(args[0]))
 				if command == 'addnotice':
 					if len( args ) < 4:
@@ -135,17 +135,17 @@ class Main(IPlugin):
 		self.app = tasc.main
 		self.chans = self.app.config.get_optionlist('join_channels',"channels")
 		self.admins = self.app.config.get_optionlist('tasbot', "admins")
-		self.update_notice = self.app.config.get_optionlist('gamebot', "update_notice")
-		self.stats_channel = self.app.config.get_optionlist('gamebot', "stats_channel")
-		self.min_revision = self.app.config.get_optionlist('gamebot', "min_revision") 
+		self.update_notice = self.app.config.get('gamebot', "update_notice")
+		self.stats_channel = self.app.config.get('gamebot', "stats_channel")
+		self.min_revision = self.app.config.get('gamebot', "min_revision") 
 		system('touch users.txt users_s44.txt' )
-		self.db = S44DB(self.app.config.get("gamebot",'alchemy_uri'))
+		self.db = Backend(self.app.config.get("gamebot",'alchemy_uri'))
 		if not self.db:
 			raise SystemExit(1)
 		self.notices = Notices( self.db )
 
 	def ChartTest(self):
 		import charts
-		chart = charts.Charts( self.db, "/tmp/sl" )
+		chart = charts.Charts( self, "/tmp/sl" )
 		chart.All()
 
