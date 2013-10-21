@@ -1,0 +1,3 @@
+[submodule "tasbot"]
+	path = tasbot
+	url = https://github.com/springlobby/tasbot.git
